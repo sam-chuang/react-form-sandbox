@@ -79,13 +79,32 @@ const InputExt = forwardRef(
     let hasErrorFocus = document.activeElement === error?.ref
     let showErrorMessage = Boolean(hasErrorFocus && error?.message)
 
+    // Experimental/unstable method that updates tooltip's dimensions when
+    // the error message changes
+    React.useEffect(() => {
+      errorTooltip.unstable_update()
+    }, [error?.message, errorTooltip.unstable_update])
+
+    // Hijacks tooltip.visible so it'll only be visible when showErrorMessage
+    // is truthy
+    React.useEffect(() => {
+      if (showErrorMessage) {
+        errorTooltip.show()
+      } else {
+        errorTooltip.hide()
+      }
+    }, [
+      showErrorMessage,
+      errorTooltip.visible,
+      errorTooltip.show,
+      errorTooltip.hide
+    ])
+
     return (
       <FormControl>
         <FormLabel htmlFor={id ?? name}>{label}</FormLabel>
-        <TooltipReference {...errorTooltip}>
-          <Input ref={ref} {...props} />
-        </TooltipReference>
-        <Tooltip {...errorTooltip} visible={showErrorMessage}>
+        <TooltipReference {...errorTooltip} as={Input} {...props} ref={ref} />
+        <Tooltip {...errorTooltip}>
           <TooltipArrow {...errorTooltip} />
           {error?.message}
         </Tooltip>
